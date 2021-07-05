@@ -32,6 +32,7 @@ import (
 	"github.com/spf13/pflag"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"k8s.io/component-base/cli/flag"
@@ -42,6 +43,7 @@ import (
 	"github.com/kubediag/kubediag/pkg/alertmanager"
 	"github.com/kubediag/kubediag/pkg/controllers"
 	"github.com/kubediag/kubediag/pkg/diagnosisreaper"
+	"github.com/kubediag/kubediag/pkg/elasticsearchquery"
 	"github.com/kubediag/kubediag/pkg/eventer"
 	"github.com/kubediag/kubediag/pkg/executor"
 	"github.com/kubediag/kubediag/pkg/features"
@@ -86,6 +88,10 @@ type KubeDiagOptions struct {
 	KafkaBrokers []string
 	// KafkaTopic specifies the topic to read messages from.
 	KafkaTopic string
+	// ElasticSearch url
+	EsURL      []string
+	EsUserName string
+	EsPassword string
 	// DockerEndpoint specifies the docker endpoint.
 	DockerEndpoint string
 	// DiagnosisTTL is amount of time to retain diagnoses.
@@ -191,6 +197,7 @@ func (opts *KubeDiagOptions) Run() error {
 		// Channel for queuing kubernetes events and operation sets.
 		eventChainCh := make(chan corev1.Event, 1000)
 		graphBuilderCh := make(chan diagnosisv1.OperationSet, 1000)
+		elasticsearchQueryCh := make(chan types.NamespacedName, 1000)
 		stopCh := SetupSignalHandler()
 
 		// Create graph builder for generating graph from operation set.
@@ -251,6 +258,31 @@ func (opts *KubeDiagOptions) Run() error {
 			}(stopCh)
 		}
 
+		if len(opts.EsURL) == 0 {
+			// esurl:=opts.EsURL
+			// esUsereName:=opts.esUsereName
+			// esPassword:=opts.esPassword
+			url := []string{"https://observability-deployment-d6bc06.es.eastus2.azure.elastic-cloud.com:9243"}
+			username := "elastic"
+			password := "jH9b50Rk2MvZsns4sgt5TYez"
+			esAlert, err := elasticsearchquery.NewElasticsearchQuery(
+				url,
+				username,
+				password,
+				ctrl.Log.WithName("elasticsearchquery"),
+				context.Background(),
+				mgr.GetClient(),
+				elasticsearchQueryCh,
+				featureGate.Enabled(features.ElasticSearchQuery))
+			if err != nil {
+				return fmt.Errorf("unable to create elasticsearchquery.")
+			}
+			go func(stopCh chan struct{}) {
+				// start to run es alert
+				esAlert.Run(stopCh)
+			}(stopCh)
+		}
+
 		// Start http server.
 		go func(stopCh chan struct{}) {
 			r := mux.NewRouter()
@@ -288,6 +320,7 @@ func (opts *KubeDiagOptions) Run() error {
 			mgr.GetClient(),
 			ctrl.Log.WithName("controllers").WithName("Trigger"),
 			mgr.GetScheme(),
+			elasticsearchQueryCh,
 		)).SetupWithManager(mgr); err != nil {
 			setupLog.Error(err, "unable to create controller", "controller", "Trigger")
 			return fmt.Errorf("unable to create controller for Trigger: %v", err)
@@ -458,6 +491,9 @@ func (opts *KubeDiagOptions) AddFlags(fs *pflag.FlagSet) {
 	fs.DurationVar(&opts.AlertmanagerRepeatInterval, "repeat-interval", opts.AlertmanagerRepeatInterval, "How long to wait before sending a notification again if it has already been sent successfully for an alert.")
 	fs.StringSliceVar(&opts.KafkaBrokers, "kafka-brokers", opts.KafkaBrokers, "The list of broker addresses used to connect to the kafka cluster.")
 	fs.StringVar(&opts.KafkaTopic, "kafka-topic", opts.KafkaTopic, "The topic to read messages from.")
+	fs.StringSliceVar(&opts.EsURL, "es-url", opts.EsURL, "The ES url.")
+	fs.StringVar(&opts.EsUserName, "es-username", opts.EsUserName, "The ES username.")
+	fs.StringVar(&opts.EsPassword, "es-password", opts.EsPassword, "The ES password.")
 	fs.DurationVar(&opts.DiagnosisTTL, "diagnosis-ttl", opts.DiagnosisTTL, "Amount of time to retain diagnoses.")
 	fs.DurationVar(&opts.MinimumDiagnosisTTLDuration, "minimum-diagnosis-ttl-duration", opts.MinimumDiagnosisTTLDuration, "Minimum age for a finished diagnosis before it is garbage collected.")
 	fs.Int32Var(&opts.MaximumDiagnosesPerNode, "maximum-diagnoses-per-node", opts.MaximumDiagnosesPerNode, "Maximum number of finished diagnoses to retain per node.")

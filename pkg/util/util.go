@@ -268,6 +268,18 @@ func QueueEvent(ctx context.Context, channel chan corev1.Event, event corev1.Eve
 	}
 }
 
+// QueueElasticsearchAlertTrigger sends an event to a channel. It returns an error if the channel is blocked.
+func QueueElasticsearchAlertTrigger(ctx context.Context, channel chan types.NamespacedName, trigger types.NamespacedName) error {
+	select {
+	case <-ctx.Done():
+		return nil
+	case channel <- trigger:
+		return nil
+	default:
+		return fmt.Errorf("channel is blocked")
+	}
+}
+
 // IsDiagnosisCompleted return true if Diagnosis is failed or succeed
 func IsDiagnosisCompleted(diagnosis diagnosisv1.Diagnosis) bool {
 	return diagnosis.Status.Phase == diagnosisv1.DiagnosisSucceeded || diagnosis.Status.Phase == diagnosisv1.DiagnosisFailed

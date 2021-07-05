@@ -39,6 +39,46 @@ type SourceTemplate struct {
 	// KubernetesEventTemplate specifies the template to create an diagnosis from a kubernetes event.
 	// +optional
 	KubernetesEventTemplate *KubernetesEventTemplate `json:"kubernetesEventTemplate,omitempty"`
+	// ElasticSearchQueryTemplate specifies the template to create an diagnosis from a elasticSearch query.
+	// +optional
+	ElasticSearchQueryTemplate *ElasticSearchQueryTemplate `json:"elasticSearchQueryTemplate,omitempty"`
+}
+
+// ElasticSearchQueryTemplate specifies the template to create an diagnosis from a elasticsearch query.
+type ElasticSearchQueryTemplate struct {
+	// RuleConfig knows how to query elasticsearch at the
+	// specified interval.
+	RuleConfig ElasticSearchRuleConfig `json:"ruleconfig"`
+	// NodeNameReferenceLabel specifies the label for setting ".spec.nodeName" of generated diagnosis.
+	// The label value will be set as ".spec.nodeName" field.
+	// +optional
+	NodeNameReferenceLabel model.LabelName `json:"nodeNameReferenceLabel,omitempty"`
+	// PodNamespaceReferenceLabel specifies the label for setting ".spec.podReference.namespace" of generated diagnosis.
+	// The label value will be set as ".spec.podReference.namespace" field.
+	// +optional
+	PodNamespaceReferenceLabel model.LabelName `json:"podNamespaceReferenceLabel,omitempty"`
+	// PodNameReferenceLabel specifies the label for setting ".spec.podReference.name" of generated diagnosis.
+	// The label value will be set as ".spec.podReference.name" field.
+	// +optional
+	PodNameReferenceLabel model.LabelName `json:"podNameReferenceLabel,omitempty"`
+	// ContainerReferenceLabel specifies the label for setting ".spec.podReference.container" of generated diagnosis.
+	// The label value will be set as ".spec.podReference.container" field.
+	// +optional
+	ContainerReferenceLabel model.LabelName `json:"containerReferenceLabel,omitempty"`
+	// ParameterInjectionLabels specifies the labels for setting ".spec.parameters" of generated diagnosis.
+	// All label names and values will be set as key value pairs in ".spec.parameters" field.
+	// +optional
+	ParameterInjectionLabels []model.LabelName `json:"parameterInjectionLabels,omitempty"`
+}
+
+// ElasticSearchRuleConfig represents a rule configuration.
+type ElasticSearchRuleConfig struct {
+	// Index is the index that this rule should query.
+	Index string `json:"index"`
+	// CronSchedule is the interval at which will execute the query.
+	CronSchedule string `json:"schedule"`
+	// Body specifies the elasticsearch query body.
+	Body string `json:"body"`
 }
 
 // PrometheusAlertTemplate specifies the template to create an diagnosis from a prometheus alert.

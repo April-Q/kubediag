@@ -519,6 +519,64 @@ spec:
             sourceTemplate:
               description: SourceTemplate is the template of trigger.
               properties:
+                elasticSearchQueryTemplate:
+                  description: ElasticSearchQueryTemplate specifies the template to
+                    create an diagnosis from a elasticSearch query.
+                  properties:
+                    containerReferenceLabel:
+                      description: ContainerReferenceLabel specifies the label for
+                        setting ".spec.podReference.container" of generated diagnosis.
+                        The label value will be set as ".spec.podReference.container"
+                        field.
+                      type: string
+                    nodeNameReferenceLabel:
+                      description: NodeNameReferenceLabel specifies the label for
+                        setting ".spec.nodeName" of generated diagnosis. The label
+                        value will be set as ".spec.nodeName" field.
+                      type: string
+                    parameterInjectionLabels:
+                      description: ParameterInjectionLabels specifies the labels for
+                        setting ".spec.parameters" of generated diagnosis. All label
+                        names and values will be set as key value pairs in ".spec.parameters"
+                        field.
+                      items:
+                        description: A LabelName is a key for a LabelSet or Metric.  It
+                          has a value associated therewith.
+                        type: string
+                      type: array
+                    podNameReferenceLabel:
+                      description: PodNameReferenceLabel specifies the label for setting
+                        ".spec.podReference.name" of generated diagnosis. The label
+                        value will be set as ".spec.podReference.name" field.
+                      type: string
+                    podNamespaceReferenceLabel:
+                      description: PodNamespaceReferenceLabel specifies the label
+                        for setting ".spec.podReference.namespace" of generated diagnosis.
+                        The label value will be set as ".spec.podReference.namespace"
+                        field.
+                      type: string
+                    ruleconfig:
+                      description: RuleConfig knows how to query elasticsearch at
+                        the specified interval.
+                      properties:
+                        body:
+                          description: Body specifies the elasticsearch query body.
+                          type: string
+                        index:
+                          description: Index is the index that this rule should query.
+                          type: string
+                        schedule:
+                          description: CronSchedule is the interval at which will
+                            execute the query.
+                          type: string
+                      required:
+                      - body
+                      - index
+                      - schedule
+                      type: object
+                  required:
+                  - ruleconfig
+                  type: object
                 kubernetesEventTemplate:
                   description: KubernetesEventTemplate specifies the template to create
                     an diagnosis from a kubernetes event.
@@ -1030,7 +1088,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: status.podIP
-        image: hub.c.163.com/kubediag/kubediag:v0.2.0
+        image: hub.c.163.com/kubediag/kubediag:934bee5
         name: kubediag
         ports:
         - containerPort: 9443
@@ -1108,7 +1166,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: status.podIP
-        image: hub.c.163.com/kubediag/kubediag:v0.2.0
+        image: hub.c.163.com/kubediag/kubediag:934bee5
         name: kubediag
         ports:
         - containerPort: 10355

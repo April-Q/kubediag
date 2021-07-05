@@ -78,9 +78,9 @@ func (r *Trigger) validateTrigger() error {
 		allErrs = append(allErrs, field.Invalid(field.NewPath("spec").Child("operationSet"),
 			r.Spec.OperationSet, "must not be empty"))
 	}
-	if r.Spec.SourceTemplate.PrometheusAlertTemplate == nil && r.Spec.SourceTemplate.KubernetesEventTemplate == nil {
+	if r.Spec.SourceTemplate.PrometheusAlertTemplate == nil && r.Spec.SourceTemplate.KubernetesEventTemplate == nil && r.Spec.SourceTemplate.ElasticSearchQueryTemplate == nil {
 		allErrs = append(allErrs, field.Invalid(field.NewPath("spec").Child("sourceTemplate"),
-			r.Spec.OperationSet, "must specify either prometheus alert template or kubernetes event template"))
+			r.Spec.OperationSet, "must specify either prometheus alert template or kubernetes event template or elastic search alert."))
 	}
 	if len(allErrs) == 0 {
 		return nil

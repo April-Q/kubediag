@@ -11,9 +11,11 @@ require (
 	github.com/docker/distribution v2.7.1-0.20190205005809-0d3efadf0154+incompatible // indirect
 	github.com/docker/docker v17.12.0-ce-rc1.0.20200618181300-9dc6525e6118+incompatible
 	github.com/docker/go-connections v0.4.0 // indirect
+	github.com/elastic/go-elasticsearch/v7 v7.13.1
 	github.com/go-logr/logr v0.1.0
 	github.com/go-ole/go-ole v1.2.4 // indirect
 	github.com/gorilla/mux v1.7.4
+	github.com/jmoiron/jsonq v0.0.0-20150511023944-e874b168d07e
 	github.com/joewalnes/websocketd v0.4.1
 	github.com/morikuni/aec v1.0.0 // indirect
 	github.com/onsi/ginkgo v1.11.0
@@ -23,6 +25,7 @@ require (
 	github.com/prometheus/alertmanager v0.21.0
 	github.com/prometheus/client_golang v1.7.1
 	github.com/prometheus/common v0.12.0
+	github.com/robfig/cron v1.2.0
 	github.com/segmentio/kafka-go v0.4.16
 	github.com/shirou/gopsutil v2.20.7+incompatible
 	github.com/spf13/cobra v0.0.5

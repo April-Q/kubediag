@@ -22,11 +22,13 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/prometheus/client_golang/prometheus"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/metrics"
 
 	diagnosisv1 "github.com/kubediag/kubediag/api/v1"
+	"github.com/kubediag/kubediag/pkg/util"
 )
 
 var (
@@ -42,20 +44,23 @@ var (
 // TriggerReconciler reconciles a Trigger object.
 type TriggerReconciler struct {
 	client.Client
-	Log    logr.Logger
-	Scheme *runtime.Scheme
+	Log                    logr.Logger
+	Scheme                 *runtime.Scheme
+	ElasticsearchAlertChan chan types.NamespacedName
 }
 
 func NewTriggerReconciler(
 	cli client.Client,
 	log logr.Logger,
 	scheme *runtime.Scheme,
+	ElasticsearchAlertChan chan types.NamespacedName,
 ) *TriggerReconciler {
 	metrics.Registry.MustRegister(triggerInfo)
 	return &TriggerReconciler{
-		Client: cli,
-		Log:    log,
-		Scheme: scheme,
+		Client:                 cli,
+		Log:                    log,
+		Scheme:                 scheme,
+		ElasticsearchAlertChan: ElasticsearchAlertChan,
 	}
 }
 
@@ -66,6 +71,12 @@ func (r *TriggerReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background()
 	log := r.Log.WithValues("trigger", req.NamespacedName)
 	r.collectTriggerMetrics(ctx, log)
+
+	// send to elasticsearch alert trigger channal
+	err := util.QueueElasticsearchAlertTrigger(ctx, r.ElasticsearchAlertChan, req.NamespacedName)
+	if err != nil {
+		log.Error(err, "failed to send trigger to esAlert queue")
+	}
 
 	return ctrl.Result{}, nil
 }

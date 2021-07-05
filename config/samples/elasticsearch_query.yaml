@@ -1,0 +1,32 @@
+apiVersion: diagnosis.kubediag.org/v1
+kind: Trigger
+metadata:
+  name: elasticsearch-query.alert.30303030
+spec:
+  operationSet: container-collector
+  sourceTemplate:
+    elasticSearchAlertTemplate:
+      nodeNameReferenceLabel: "index"
+      ruleconfig:
+        index: "test"
+        schedule: "@every 2m"
+        body: '{
+						"query": {
+						  "match": {
+							"title": "alert"
+						  }
+						  }
+					  }'
+
+---
+apiVersion: diagnosis.kubediag.org/v1
+kind: OperationSet
+metadata:
+  name: container-collector
+spec:
+  adjacencyList:
+  - id: 0
+    to:
+    - 1
+  - id: 1
+    operation: container-collector

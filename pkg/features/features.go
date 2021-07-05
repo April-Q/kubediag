@@ -46,7 +46,12 @@ const (
 	// Owner: @huangjiuyuan
 	// Alpha: 0.2.0
 	KafkaConsumer featuregate.Feature = "KafkaConsumer"
-
+	// ElasticSearchQuery generate diagnosis from elasticsearch query.
+	//
+	// Mode: agent
+	// Owner: @April-Q
+	// Alpha: 0.2.0
+	ElasticSearchQuery featuregate.Feature = "ElasticSearchQuery"
 	// PodCollector manages information of pods.
 	//
 	// Mode: agent
@@ -148,6 +153,7 @@ var defaultKubeDiagFeatureGates = map[featuregate.Feature]featuregate.FeatureSpe
 	Alertmanager:                 {Default: true, PreRelease: featuregate.Alpha},
 	Eventer:                      {Default: false, PreRelease: featuregate.Alpha},
 	KafkaConsumer:                {Default: true, PreRelease: featuregate.Alpha},
+	ElasticSearchQuery:           {Default: true, PreRelease: featuregate.Alpha},
 	PodCollector:                 {Default: true, PreRelease: featuregate.Alpha},
 	ContainerCollector:           {Default: true, PreRelease: featuregate.Alpha},
 	ProcessCollector:             {Default: true, PreRelease: featuregate.Alpha},
